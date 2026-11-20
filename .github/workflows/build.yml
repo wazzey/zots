@@ -19,20 +19,32 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Azule
+      - name: Install build tools
         run: |
-          BUILDER_OWNER="mpelteshki"
-          git clone "https://github.com/${BUILDER_OWNER}/Azule" ~/Azule
-          sudo ln -sf ~/Azule/azule /usr/local/bin/azule
+          brew install dpkg ldid
+          python3 -m pip install --upgrade --break-system-packages \
+              git+https://github.com/asdfzxcvbn/pyzule-rw.git
 
       - name: Download Files
         run: |
           wget --no-check-certificate "${{ github.event.inputs.ipa_url }}" -O input.ipa
           wget --no-check-certificate "${{ github.event.inputs.deb_url }}" -O tweak.deb
 
-      - name: Inject Tweak
+      - name: Inject Tweak (cyan)
         run: |
-          azule -i input.ipa -o "$PWD" -n output -f "$PWD/tweak.deb"
+          DEB_EXTRACT="$RUNNER_TEMP/deb-extract"; mkdir -p "$DEB_EXTRACT"
+          dpkg-deb -R tweak.deb "$DEB_EXTRACT"
+
+          DYLIB_SRC=$(find "$DEB_EXTRACT" -name 'EeveeSpotify.dylib' | head -1)
+          BUNDLE_SRC=$(find "$DEB_EXTRACT" -type d -name 'EeveeSpotify.bundle' | head -1)
+          FRAMEWORK_SRC=$(find "$DEB_EXTRACT" -type d -name 'EeveeSwiftProtobuf.framework' | head -1)
+
+          INJECT=("$DYLIB_SRC")
+          [ -n "$FRAMEWORK_SRC" ] && INJECT+=("$FRAMEWORK_SRC")
+          [ -n "$BUNDLE_SRC" ]    && INJECT+=("$BUNDLE_SRC")
+
+          cyan -i input.ipa -o output.ipa \
+               -f "${INJECT[@]}" -c 9 -m 15.0 -du
 
       - name: Upload Finished Build
         uses: actions/upload-artifact@v4
