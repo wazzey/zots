@@ -16,20 +16,7 @@ private let traceAds:   Bool = false
 private let traceSB:    Bool = false
 // TESTING: dumps SmartShuffle / FreeShuffle service classes so we can
 // pick real selectors for a TrueShuffle hook on this Spotify version.
-private let traceShuffle: Bool = true
-
-// TESTING: the system log redacts Swift NSLog text, so probe output also goes to Documents/eevee-probe.log.
-private let probeLogHandle: FileHandle? = {
-    let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("eevee-probe.log")
-    FileManager.default.createFile(atPath: url.path, contents: nil)
-    return try? FileHandle(forWritingTo: url)
-}()
-
-fileprivate func NSLog(_ format: String, _ args: CVarArg...) {
-    let line = String(format: format, arguments: args)
-    Foundation.NSLog("%@", line)
-    probeLogHandle?.write(Data((line + "\n").utf8))
-}
+private let traceShuffle: Bool = false
 
 private let importantNotifSubstrings: [String] = [
     "premium", "product", "account", "session", "login", "logout",
@@ -99,21 +86,8 @@ class NotifPostHook: ClassHook<NSObject> {
     }
 }
 
-// TESTING: logs how many upcoming tracks each queue snapshot carries, for Shuffle+.
-class ProbeQueueHook: ClassHook<NSObject> {
-    typealias Group = ProbeQueueGroup
-    static let targetName = "SPTPlayerQueueImplementation"
-
-    func setNextTracks(_ tracks: NSArray?) {
-        let first = tracks?.firstObject.map { String(describing: type(of: $0)) } ?? "-"
-        NSLog("[PROBE][QUEUE] nextTracks=%d first=%@", tracks?.count ?? -1, first)
-        orig.setNextTracks(tracks)
-    }
-}
-
 struct ProbeNetGroup: HookGroup {}
 struct ProbeNotifGroup: HookGroup {}
-struct ProbeQueueGroup: HookGroup {}
 
 private let classesToDump: [String] = [
     "Authentication_ForcedLogoutImpl.ForcedLogoutDaemon",
@@ -328,10 +302,6 @@ private func dumpClassesOnce() {
             || nm.contains("Esperanto") || nm.contains("ProductType") {
             NSLog("[PROBE][CLASSLIST] %s", cstr)
         }
-        if traceShuffle && (nm.contains("Queue") || nm.contains("Shuffle") || nm.hasPrefix("SPTPlayer")
-            || nm.hasPrefix("SPTEsperantoPlayer")) {
-            dumpClass(nm)
-        }
     }
     NSLog("[PROBE][CLASSLIST] done")
 }
@@ -346,6 +316,5 @@ func activateEeveeProbes() {
           traceSB ? "on" : "off")
     if netOn { ProbeNetGroup().activate() }
     if notifOn { ProbeNotifGroup().activate() }
-    if traceShuffle { ProbeQueueGroup().activate() }
     dumpClassesOnce()
 }
