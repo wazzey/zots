@@ -22,6 +22,7 @@ on:
           - artifacts
           - filebin
           - both
+          - release
 
 env:
   THEOS: ${{ github.workspace }}/theos
@@ -30,6 +31,8 @@ env:
 jobs:
   build:
     runs-on: macos-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -241,3 +244,13 @@ jobs:
             echo "- **URL:** ${DOWNLOAD_URL}"
             echo "- _Filebin auto-deletes bins after a period of inactivity — download promptly._"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create Release
+        if: ${{ inputs.ipa_url != '' && inputs.upload_method == 'release' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "source-build-${{ github.run_number }}" "$OUT_IPA" \
+            --target "${{ github.sha }}" \
+            --title "EeveeSpotify from ${{ inputs.branch }} (build ${{ github.run_number }})" \
+            --notes ""
