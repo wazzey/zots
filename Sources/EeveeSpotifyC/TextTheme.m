@@ -20,10 +20,53 @@ static UIFont *monospaced(UIFont *font) {
     return mono ?: font;
 }
 
-int EeveeInstallFontSwap(void) {
+// Lowercases each attribute run on its own so styling survives. Runs whose length would change are left alone.
+static NSAttributedString *lowercased(NSAttributedString *text) {
+    if (!text.length) return text;
+    NSMutableAttributedString *result = [text mutableCopy];
+    [text enumerateAttributesInRange:NSMakeRange(0, text.length) options:0 usingBlock:^(NSDictionary *attributes, NSRange range, BOOL *stop) {
+        NSString *run = [text.string substringWithRange:range];
+        NSString *lower = run.lowercaseString;
+        if (lower.length == run.length) [result replaceCharactersInRange:range withString:lower];
+    }];
+    return result;
+}
+
+int EeveeInstallTextTheme(BOOL monospace, BOOL lowercase, BOOL square) {
     static dispatch_once_t once;
     __block int count = 0;
     dispatch_once(&once, ^{
+        if (lowercase) {
+            Method plain = class_getInstanceMethod(UILabel.class, @selector(setText:));
+            if (plain) {
+                void (*orig)(id, SEL, NSString *) = (void *)method_getImplementation(plain);
+                method_setImplementation(plain, imp_implementationWithBlock(^(id self_, NSString *text) {
+                    orig(self_, @selector(setText:), text.lowercaseString);
+                }));
+                count++;
+            }
+            Method attributed = class_getInstanceMethod(UILabel.class, @selector(setAttributedText:));
+            if (attributed) {
+                void (*orig)(id, SEL, NSAttributedString *) = (void *)method_getImplementation(attributed);
+                method_setImplementation(attributed, imp_implementationWithBlock(^(id self_, NSAttributedString *text) {
+                    orig(self_, @selector(setAttributedText:), lowercased(text));
+                }));
+                count++;
+            }
+        }
+
+        if (square) {
+            Method corners = class_getInstanceMethod(CALayer.class, @selector(setCornerRadius:));
+            if (corners) {
+                void (*orig)(id, SEL, CGFloat) = (void *)method_getImplementation(corners);
+                method_setImplementation(corners, imp_implementationWithBlock(^(id self_, CGFloat radius) {
+                    orig(self_, @selector(setCornerRadius:), 0);
+                }));
+                count++;
+            }
+        }
+
+        if (!monospace) return;
         Method named = class_getClassMethod(UIFont.class, @selector(fontWithName:size:));
         if (named) {
             UIFont *(*orig)(id, SEL, NSString *, CGFloat) = (void *)method_getImplementation(named);
