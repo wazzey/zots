@@ -20,7 +20,7 @@ jobs:
       - name: Install Azule
         run: |
           BUILDER_OWNER="mpelteshki"
-          git clone "https://github.com{BUILDER_OWNER}/Azule" ~/Azule
+          git clone "https://github.com/${BUILDER_OWNER}/Azule" ~/Azule
           sudo ln -sf ~/Azule/azule /usr/local/bin/azule
 
       - name: Download Files
