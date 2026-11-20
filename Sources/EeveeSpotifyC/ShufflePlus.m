@@ -97,12 +97,13 @@ int EeveeInstallShufflePlus(void) {
         }));
         count++;
 
-        // The Shuffle row of the listening modes sheet reads Shuffle+ so it's clear which shuffle plays.
+        // The listening modes sheet names both shuffles with a plus so it's clear Shuffle+ deals them.
+        NSDictionary<NSString *, NSString *> *names = @{@"Shuffle": @"Shuffle+", @"Smart Shuffle": @"Smart Shuffle+"};
         Method plain = class_getInstanceMethod(UILabel.class, @selector(setText:));
         if (plain) {
             void (*orig)(id, SEL, NSString *) = (void *)method_getImplementation(plain);
             method_setImplementation(plain, imp_implementationWithBlock(^(id self_, NSString *text) {
-                orig(self_, @selector(setText:), [text isEqualToString:@"Shuffle"] ? @"Shuffle+" : text);
+                orig(self_, @selector(setText:), (text ? names[text] : nil) ?: text);
             }));
             count++;
         }
@@ -110,12 +111,13 @@ int EeveeInstallShufflePlus(void) {
         if (attributed) {
             void (*orig)(id, SEL, NSAttributedString *) = (void *)method_getImplementation(attributed);
             method_setImplementation(attributed, imp_implementationWithBlock(^(id self_, NSAttributedString *text) {
-                if (![text.string isEqualToString:@"Shuffle"]) {
+                NSString *name = text.string ? names[text.string] : nil;
+                if (!name) {
                     orig(self_, @selector(setAttributedText:), text);
                     return;
                 }
                 NSMutableAttributedString *renamed = [text mutableCopy];
-                [renamed replaceCharactersInRange:NSMakeRange(0, renamed.length) withString:@"Shuffle+"];
+                [renamed replaceCharactersInRange:NSMakeRange(0, renamed.length) withString:name];
                 orig(self_, @selector(setAttributedText:), renamed);
             }));
             count++;
