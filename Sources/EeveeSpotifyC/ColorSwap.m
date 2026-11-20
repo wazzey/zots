@@ -4,16 +4,25 @@
 #import "Tweak.h"
 
 // Spotify's base surface (#121212) and brand greens are each one token, so they're swapped where colors are born.
-static BOOL sAmoled;
+static BOOL sBaseOn;
+static BOOL sTintElevated;
+static CGFloat sBase[3];
 static BOOL sAccentOn;
 static CGFloat sAccent[3];
 static const uint32_t kGreens[] = {0x1ED760, 0x1DB954};
 static atomic_long sGreyHits, sGreenHits, sInitHits;
 
+// Colour schemes also tint the lighter card greys, keeping how much lighter each one is than the base.
 static BOOL isBaseGrey(const CGFloat *c, size_t n) {
-    if (n == 2) return c[0] > 0.01 && c[0] <= 0.10;
+    CGFloat ceiling = sTintElevated ? 0.30 : 0.10;
+    if (n == 2) return c[0] > 0.01 && c[0] <= ceiling;
     if (n < 3) return NO;
-    return c[0] > 0.01 && c[0] <= 0.10 && fabs(c[0] - c[1]) < 0.02 && fabs(c[1] - c[2]) < 0.02;
+    return c[0] > 0.01 && c[0] <= ceiling && fabs(c[0] - c[1]) < 0.02 && fabs(c[1] - c[2]) < 0.02;
+}
+
+static CGColorRef copyBaseShade(CGFloat grey, CGFloat alpha) {
+    CGFloat lift = sTintElevated ? MAX(0, grey - 0.07) : 0;
+    return CGColorCreateSRGB(MIN(1, sBase[0] + lift), MIN(1, sBase[1] + lift), MIN(1, sBase[2] + lift), alpha);
 }
 
 // The darker green variants keep their relation to the token as the same shade of the accent.
@@ -36,9 +45,9 @@ static CGColorRef copySwapped(CGColorRef color) {
     if (!color || CFGetTypeID(color) != CGColorGetTypeID()) return NULL;
     size_t n = CGColorGetNumberOfComponents(color);
     const CGFloat *c = CGColorGetComponents(color);
-    if (sAmoled && isBaseGrey(c, n)) {
+    if (sBaseOn && isBaseGrey(c, n)) {
         atomic_fetch_add_explicit(&sGreyHits, 1, memory_order_relaxed);
-        return CGColorCreateGenericGray(0, CGColorGetAlpha(color));
+        return copyBaseShade(c[0], CGColorGetAlpha(color));
     }
     if (n != 4) return NULL;
     CGFloat r = c[0], g = c[1], b = c[2];
@@ -66,16 +75,20 @@ static id swappedObject(id value) {
     count++; \
 } while (0)
 
-int EeveeInstallColorSwaps(BOOL amoled, NSInteger accentRGB) {
+int EeveeInstallColorSwaps(NSInteger baseRGB, BOOL tintElevated, NSInteger accentRGB) {
     static dispatch_once_t once;
     __block int count = 0;
     dispatch_once(&once, ^{
-        sAmoled = amoled;
+        sBaseOn = baseRGB >= 0 && baseRGB <= 0xFFFFFF;
+        sTintElevated = tintElevated;
+        sBase[0] = ((baseRGB >> 16) & 0xFF) / 255.0;
+        sBase[1] = ((baseRGB >> 8) & 0xFF) / 255.0;
+        sBase[2] = (baseRGB & 0xFF) / 255.0;
         sAccentOn = accentRGB >= 0 && accentRGB <= 0xFFFFFF;
         sAccent[0] = ((accentRGB >> 16) & 0xFF) / 255.0;
         sAccent[1] = ((accentRGB >> 8) & 0xFF) / 255.0;
         sAccent[2] = (accentRGB & 0xFF) / 255.0;
-        if (!sAmoled && !sAccentOn) return;
+        if (!sBaseOn && !sAccentOn) return;
 
         SWIZZLE_CGCOLOR_SETTER(CALayer.class, @selector(setBackgroundColor:));
 

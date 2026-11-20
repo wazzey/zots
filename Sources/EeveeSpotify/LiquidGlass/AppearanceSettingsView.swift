@@ -3,6 +3,10 @@ import UIKit
 
 struct AppearanceSettingsView: View {
     @State private var amoled = UserDefaults.amoled
+    @State private var monospace = UserDefaults.monospace
+    @State private var lowercaseText = UserDefaults.lowercaseText
+    @State private var squareCorners = UserDefaults.squareCorners
+    @State private var scheme = UserDefaults.colorScheme
     @AppStorage("eeveeAccent", store: UserDefaults.container) private var accent = -1
     @State private var roundedArtwork = UserDefaults.roundedArtwork
     @State private var glass = UserDefaults.liquidGlassOptions
@@ -47,6 +51,13 @@ struct AppearanceSettingsView: View {
             Section(header: Text("theme".localized), footer: Text("theme_footer".localized)) {
                 SettingsToggle(title: "amoled".localized, icon: "moon.fill", color: Color(hex: "#3A3A3C"), isOn: $amoled)
                 accentRow
+                Picker(selection: $scheme, label: SettingsLabel(title: "color_scheme".localized, icon: "swatchpalette.fill", color: .purple)) {
+                    Text("color_scheme_none".localized).tag(ThemeScheme?.none)
+                    ForEach(ThemeScheme.allCases, id: \.self) { Text($0.title).tag(ThemeScheme?.some($0)) }
+                }
+                SettingsToggle(title: "monospace_font".localized, icon: "textformat", color: .gray, isOn: $monospace)
+                SettingsToggle(title: "lowercase_text".localized, icon: "textformat.abc", color: .gray, isOn: $lowercaseText)
+                SettingsToggle(title: "square_corners".localized, icon: "square", color: .gray, isOn: $squareCorners)
                 SettingsToggle(title: "rounded_artwork".localized, icon: "square.on.square", color: .orange, isOn: $roundedArtwork)
             }
 
@@ -80,13 +91,20 @@ struct AppearanceSettingsView: View {
                 }
             }
 
-            SettingsResetSection(visible: amoled || accent >= 0 || roundedArtwork) {
+            SettingsResetSection(visible: amoled || accent >= 0 || scheme != nil || monospace || lowercaseText || squareCorners
+                || roundedArtwork) {
                 amoled = false
                 accent = -1
+                scheme = nil
+                monospace = false
+                lowercaseText = false
+                squareCorners = false
                 roundedArtwork = false
             }
 
-            if amoled != Theme.launchAmoled || accent != Theme.launchAccent || roundedArtwork != launchRounded {
+            if amoled != Theme.launchAmoled || accent != Theme.launchAccent || scheme != Theme.launchScheme
+                || monospace != Theme.launchMonospace || lowercaseText != Theme.launchLowercase
+                || squareCorners != Theme.launchSquare || roundedArtwork != launchRounded {
                 Section {
                     Button(action: exitApplication) {
                         Text("restart_now".localized).fontWeight(.semibold).frame(maxWidth: .infinity)
@@ -99,6 +117,10 @@ struct AppearanceSettingsView: View {
         }
         .eeveeSettingsStyle()
         .onChange(of: amoled) { UserDefaults.amoled = $0 }
+        .onChange(of: monospace) { UserDefaults.monospace = $0 }
+        .onChange(of: lowercaseText) { UserDefaults.lowercaseText = $0 }
+        .onChange(of: squareCorners) { UserDefaults.squareCorners = $0 }
+        .onChange(of: scheme) { UserDefaults.colorScheme = $0 }
         .onChange(of: roundedArtwork) { UserDefaults.roundedArtwork = $0 }
         .onAppear(perform: refresh)
         .onReceive(NotificationCenter.default.publisher(for: .eeveeTabBarOptionsChanged)) { _ in refresh() }
