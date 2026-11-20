@@ -18,6 +18,19 @@ private let traceSB:    Bool = false
 // pick real selectors for a TrueShuffle hook on this Spotify version.
 private let traceShuffle: Bool = true
 
+// TESTING: the system log redacts Swift NSLog text, so probe output also goes to Documents/eevee-probe.log.
+private let probeLogHandle: FileHandle? = {
+    let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("eevee-probe.log")
+    FileManager.default.createFile(atPath: url.path, contents: nil)
+    return try? FileHandle(forWritingTo: url)
+}()
+
+fileprivate func NSLog(_ format: String, _ args: CVarArg...) {
+    let line = String(format: format, arguments: args)
+    Foundation.NSLog("%@", line)
+    probeLogHandle?.write(Data((line + "\n").utf8))
+}
+
 private let importantNotifSubstrings: [String] = [
     "premium", "product", "account", "session", "login", "logout",
     "authState", "authSession", "subscription"
