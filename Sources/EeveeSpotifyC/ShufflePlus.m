@@ -96,6 +96,30 @@ int EeveeInstallShufflePlus(void) {
             reshuffle(self_);
         }));
         count++;
+
+        // The Shuffle row of the listening modes sheet reads Shuffle+ so it's clear which shuffle plays.
+        Method plain = class_getInstanceMethod(UILabel.class, @selector(setText:));
+        if (plain) {
+            void (*orig)(id, SEL, NSString *) = (void *)method_getImplementation(plain);
+            method_setImplementation(plain, imp_implementationWithBlock(^(id self_, NSString *text) {
+                orig(self_, @selector(setText:), [text isEqualToString:@"Shuffle"] ? @"Shuffle+" : text);
+            }));
+            count++;
+        }
+        Method attributed = class_getInstanceMethod(UILabel.class, @selector(setAttributedText:));
+        if (attributed) {
+            void (*orig)(id, SEL, NSAttributedString *) = (void *)method_getImplementation(attributed);
+            method_setImplementation(attributed, imp_implementationWithBlock(^(id self_, NSAttributedString *text) {
+                if (![text.string isEqualToString:@"Shuffle"]) {
+                    orig(self_, @selector(setAttributedText:), text);
+                    return;
+                }
+                NSMutableAttributedString *renamed = [text mutableCopy];
+                [renamed replaceCharactersInRange:NSMakeRange(0, renamed.length) withString:@"Shuffle+"];
+                orig(self_, @selector(setAttributedText:), renamed);
+            }));
+            count++;
+        }
     });
     return count;
 }
