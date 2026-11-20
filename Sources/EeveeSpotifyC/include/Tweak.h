@@ -11,6 +11,7 @@ BOOL EeveeFireTap(UIView *root);
 int EeveeInstallColorSwaps(NSInteger baseRGB, BOOL tintElevated, NSInteger accentRGB);
 void EeveeColorSwapStats(long *grey, long *green, long *uiColor);
 int EeveeInstallTextTheme(BOOL monospace, BOOL lowercase, BOOL square);
+int EeveeInstallShufflePlus(void);
 BOOL EeveePinSetter(id object, SEL setter, id value);
 BOOL EeveeInterceptBackground(UIView *view, void (^sink)(UIColor *color));
 
