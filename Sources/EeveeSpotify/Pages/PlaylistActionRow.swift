@@ -120,11 +120,6 @@ final class PlaylistActionRow: UIView {
         dot.isHidden = true
         return dot
     }()
-    private let shufflePlusButton: UIButton = {
-        let button = PlaylistActionRow.circle("shuffle.circle")
-        button.isHidden = !UserDefaults.shufflePlusEnabled
-        return button
-    }()
     private let artistDownloadButton = PlaylistActionRow.circle("arrow.down")
     private let addButton = PlaylistActionRow.circle("plus")
     private weak var artistHeader: UIView?
@@ -181,18 +176,13 @@ final class PlaylistActionRow: UIView {
         artistDownloadButton.accessibilityLabel = "Artist downloads"
         artistDownloadButton.isHidden = true
         actions.addSubview(artistDownloadButton)
-        for (button, name) in [(shuffleButton,"Shuffle"),(shufflePlusButton,"ShufflePlus"),(addButton,"Add"),(shareButton,"Share"),(followButton,"Follow")] {
+        for (button, name) in [(shuffleButton,"Shuffle"),(addButton,"Add"),(shareButton,"Share"),(followButton,"Follow")] {
             button.accessibilityIdentifier = "Eevee.Playlist." + name
             actions.addSubview(button)
         }
         playButton.accessibilityIdentifier = "Eevee.Playlist.Play"
         shuffleButton.addSubview(shuffleDot)
         shuffleButton.addAction(UIAction { [weak self] _ in self?.forward(self?.shuffle, "shuffle") }, for: .primaryActionTriggered)
-        shufflePlusButton.accessibilityLabel = "Shuffle+"
-        shufflePlusButton.addAction(UIAction { _ in
-            EeveeShufflePlusNow()
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        }, for: .primaryActionTriggered)
         playButton.addAction(UIAction { [weak self] _ in self?.forward(self?.play, "play") }, for: .primaryActionTriggered)
         addButton.addAction(UIAction { [weak self] _ in self?.forward(self?.add, "add") }, for: .primaryActionTriggered)
         followButton.addAction(UIAction { [weak self] _ in self?.forward(self?.followControl, "follow") }, for: .primaryActionTriggered)
@@ -223,7 +213,7 @@ final class PlaylistActionRow: UIView {
             if native.frame != frame { native.frame = frame }
             x += size.width + gap
         }
-        for button in [shuffleButton, shufflePlusButton, artistDownloadButton, addButton, shareButton, followButton] where !button.isHidden {
+        for button in [shuffleButton, artistDownloadButton, addButton, shareButton, followButton] where !button.isHidden {
             let width = side
             let frame = CGRect(x: x, y: 0, width: width, height: side)
             if button.frame != frame { button.frame = frame }
