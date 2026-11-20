@@ -13,6 +13,8 @@ on:
 jobs:
   build:
     runs-on: macos-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -37,3 +39,12 @@ jobs:
         with:
           name: EeveeSpotify-Patched-IPA
           path: output.ipa
+
+      - name: Create Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "build-${{ github.run_number }}" output.ipa \
+            --target "${{ github.sha }}" \
+            --title "EeveeSpotify Patched IPA (build ${{ github.run_number }})" \
+            --notes ""
