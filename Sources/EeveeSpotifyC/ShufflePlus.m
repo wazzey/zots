@@ -6,6 +6,7 @@
 - (id)getQueueWithCallback:(void (^)(id queue))callback;
 - (void)fetchState:(void (^)(id state))callback reverseCap:(unsigned long long)reverseCap futureCap:(unsigned long long)futureCap on:(id)queue;
 - (id)setQueue:(id)queue;
+- (id)setShufflingContext:(BOOL)shuffling;
 @end
 
 @protocol EeveeShuffleState
@@ -23,6 +24,8 @@
 // Spotify's shuffle replays orders it has used before, so each new shuffled play is dealt again with Fisher-Yates.
 static NSString *sLastPlay;
 static NSObject *sLock;
+static __weak id sPlayer;
+static BOOL sShuffling;
 
 static BOOL answers(id object, SEL selector) {
     return object && [object respondsToSelector:selector];
@@ -86,6 +89,8 @@ int EeveeInstallShufflePlus(void) {
                 play = [NSString stringWithFormat:@"%@|%@", state.contextURI, state.sessionID];
             }
             @synchronized (sLock) {
+                sPlayer = self_;
+                sShuffling = shuffling;
                 if (!play) {
                     sLastPlay = nil;
                     return;
@@ -98,4 +103,20 @@ int EeveeInstallShufflePlus(void) {
         count++;
     });
     return count;
+}
+
+// Turning shuffle on deals through the state update that follows, so only an already shuffled play is dealt here.
+void EeveeShufflePlusNow(void) {
+    id<EeveeShufflePlayer> player;
+    BOOL shuffling;
+    @synchronized (sLock) {
+        player = sPlayer;
+        shuffling = sShuffling;
+    }
+    if (!player) return;
+    if (!shuffling) {
+        [player setShufflingContext:YES];
+        return;
+    }
+    reshuffle(player);
 }
