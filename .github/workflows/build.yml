@@ -19,7 +19,7 @@ jobs:
 
       - name: Install Azule
         run: |
-          git clone https://github.com/Al4ise/Azule ~/Azule
+          git clone https://github.com/mpelteshki/Azule ~/Azule
           sudo ln -sf ~/Azule/azule /usr/local/bin/azule
 
       - name: Download Files
