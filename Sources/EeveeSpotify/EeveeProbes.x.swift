@@ -99,8 +99,21 @@ class NotifPostHook: ClassHook<NSObject> {
     }
 }
 
+// TESTING: logs how many upcoming tracks each queue snapshot carries, for Shuffle+.
+class ProbeQueueHook: ClassHook<NSObject> {
+    typealias Group = ProbeQueueGroup
+    static let targetName = "SPTPlayerQueueImplementation"
+
+    func setNextTracks(_ tracks: NSArray?) {
+        let first = tracks?.firstObject.map { String(describing: type(of: $0)) } ?? "-"
+        NSLog("[PROBE][QUEUE] nextTracks=%d first=%@", tracks?.count ?? -1, first)
+        orig.setNextTracks(tracks)
+    }
+}
+
 struct ProbeNetGroup: HookGroup {}
 struct ProbeNotifGroup: HookGroup {}
+struct ProbeQueueGroup: HookGroup {}
 
 private let classesToDump: [String] = [
     "Authentication_ForcedLogoutImpl.ForcedLogoutDaemon",
@@ -315,7 +328,8 @@ private func dumpClassesOnce() {
             || nm.contains("Esperanto") || nm.contains("ProductType") {
             NSLog("[PROBE][CLASSLIST] %s", cstr)
         }
-        if traceShuffle && (nm.contains("Queue") || nm.contains("Shuffle") || nm.hasPrefix("SPTPlayer")) {
+        if traceShuffle && (nm.contains("Queue") || nm.contains("Shuffle") || nm.hasPrefix("SPTPlayer")
+            || nm.hasPrefix("SPTEsperantoPlayer")) {
             dumpClass(nm)
         }
     }
@@ -332,5 +346,6 @@ func activateEeveeProbes() {
           traceSB ? "on" : "off")
     if netOn { ProbeNetGroup().activate() }
     if notifOn { ProbeNotifGroup().activate() }
+    if traceShuffle { ProbeQueueGroup().activate() }
     dumpClassesOnce()
 }
