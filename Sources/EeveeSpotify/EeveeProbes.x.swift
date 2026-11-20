@@ -16,7 +16,7 @@ private let traceAds:   Bool = false
 private let traceSB:    Bool = false
 // TESTING: dumps SmartShuffle / FreeShuffle service classes so we can
 // pick real selectors for a TrueShuffle hook on this Spotify version.
-private let traceShuffle: Bool = false
+private let traceShuffle: Bool = true
 
 private let importantNotifSubstrings: [String] = [
     "premium", "product", "account", "session", "login", "logout",
@@ -301,6 +301,9 @@ private func dumpClassesOnce() {
             || (nm.contains("SPT") && (nm.contains("Account") || nm.contains("User")))
             || nm.contains("Esperanto") || nm.contains("ProductType") {
             NSLog("[PROBE][CLASSLIST] %s", cstr)
+        }
+        if traceShuffle && (nm.contains("Queue") || nm.contains("Shuffle") || nm.hasPrefix("SPTPlayer")) {
+            dumpClass(nm)
         }
     }
     NSLog("[PROBE][CLASSLIST] done")
