@@ -3,6 +3,7 @@ import UIKit
 
 struct AppearanceSettingsView: View {
     @State private var amoled = UserDefaults.amoled
+    @State private var monospace = UserDefaults.monospace
     @AppStorage("eeveeAccent", store: UserDefaults.container) private var accent = -1
     @State private var roundedArtwork = UserDefaults.roundedArtwork
     @State private var glass = UserDefaults.liquidGlassOptions
@@ -47,6 +48,7 @@ struct AppearanceSettingsView: View {
             Section(header: Text("theme".localized), footer: Text("theme_footer".localized)) {
                 SettingsToggle(title: "amoled".localized, icon: "moon.fill", color: Color(hex: "#3A3A3C"), isOn: $amoled)
                 accentRow
+                SettingsToggle(title: "monospace_font".localized, icon: "textformat", color: .gray, isOn: $monospace)
                 SettingsToggle(title: "rounded_artwork".localized, icon: "square.on.square", color: .orange, isOn: $roundedArtwork)
             }
 
@@ -80,13 +82,15 @@ struct AppearanceSettingsView: View {
                 }
             }
 
-            SettingsResetSection(visible: amoled || accent >= 0 || roundedArtwork) {
+            SettingsResetSection(visible: amoled || accent >= 0 || monospace || roundedArtwork) {
                 amoled = false
                 accent = -1
+                monospace = false
                 roundedArtwork = false
             }
 
-            if amoled != Theme.launchAmoled || accent != Theme.launchAccent || roundedArtwork != launchRounded {
+            if amoled != Theme.launchAmoled || accent != Theme.launchAccent || monospace != Theme.launchMonospace
+                || roundedArtwork != launchRounded {
                 Section {
                     Button(action: exitApplication) {
                         Text("restart_now".localized).fontWeight(.semibold).frame(maxWidth: .infinity)
@@ -99,6 +103,7 @@ struct AppearanceSettingsView: View {
         }
         .eeveeSettingsStyle()
         .onChange(of: amoled) { UserDefaults.amoled = $0 }
+        .onChange(of: monospace) { UserDefaults.monospace = $0 }
         .onChange(of: roundedArtwork) { UserDefaults.roundedArtwork = $0 }
         .onAppear(perform: refresh)
         .onReceive(NotificationCenter.default.publisher(for: .eeveeTabBarOptionsChanged)) { _ in refresh() }

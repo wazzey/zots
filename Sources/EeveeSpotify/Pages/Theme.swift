@@ -6,6 +6,7 @@ enum Theme {
     static let spotifyGreen: Int = 0x1ED760
     static let launchAmoled = UserDefaults.amoled
     static let launchAccent = UserDefaults.accentRGB
+    static let launchMonospace = UserDefaults.monospace
 
     static var accent: UIColor { color(accentOrGreen(launchAccent)) }
 
@@ -23,6 +24,9 @@ enum Theme {
 }
 
 func activateTheme() {
+    if Theme.launchMonospace {
+        eeveeLog("[EeveeSpotify][Theme] Monospace font, %d factories", EeveeInstallFontSwap())
+    }
     guard Theme.launchAmoled || Theme.launchAccent >= 0 else { return }
     let start = CFAbsoluteTimeGetCurrent()
     let swaps = EeveeInstallColorSwaps(Theme.launchAmoled, Theme.launchAccent)
@@ -40,6 +44,11 @@ extension UserDefaults {
     static var amoled: Bool {
         get { container.bool(forKey: "eeveeAmoled") }
         set { container.set(newValue, forKey: "eeveeAmoled") }
+    }
+
+    static var monospace: Bool {
+        get { container.bool(forKey: "eeveeMonospace") }
+        set { container.set(newValue, forKey: "eeveeMonospace") }
     }
 
     static var accentRGB: Int {

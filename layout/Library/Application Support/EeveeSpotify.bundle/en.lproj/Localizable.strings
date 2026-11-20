@@ -392,6 +392,7 @@ theme = "Theme";
 theme_footer = "Restart to apply.";
 amoled = "AMOLED black";
 accent_color = "Accent color";
+monospace_font = "Text theme (monospace font)";
 home = "Home";
 home_subtitle = "Hide sections";
 home_hide = "Hide";
