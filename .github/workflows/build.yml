@@ -30,7 +30,7 @@ jobs:
 
       - name: Inject Tweak
         run: |
-          azule -i input.ipa -o "$PWD" -n output -f tweak.deb
+          azule -i input.ipa -o "$PWD" -n output -f "$PWD/tweak.deb"
 
       - name: Upload Finished Build
         uses: actions/upload-artifact@v4
