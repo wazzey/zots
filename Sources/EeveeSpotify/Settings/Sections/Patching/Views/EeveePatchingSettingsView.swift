@@ -5,6 +5,7 @@ struct EeveePatchingSettingsView: View {
     @State var patchType = UserDefaults.patchType
     @State var overwriteConfiguration = UserDefaults.overwriteConfiguration
     @State var trueShuffleEnabled = UserDefaults.trueShuffleEnabled
+    @State var shufflePlusEnabled = UserDefaults.shufflePlusEnabled
 
     var body: some View {
         List {
@@ -39,6 +40,10 @@ struct EeveePatchingSettingsView: View {
                 UserDefaults.trueShuffleEnabled = isEnabled
             }
 
+            .onChange(of: shufflePlusEnabled) { isEnabled in
+                UserDefaults.shufflePlusEnabled = isEnabled
+            }
+
             if patchType == .requests {
                 Section(
                     footer: Text("overwrite_configuration_description".localized)
@@ -57,6 +62,15 @@ struct EeveePatchingSettingsView: View {
                 ) {
                     Toggle("true_shuffle".localized, isOn: $trueShuffleEnabled)
                 }
+            }
+
+            Section(
+                footer: Text(
+                    "shuffle_plus_desc".localized
+                    + "restart_is_required_description".localized
+                )
+            ) {
+                Toggle("shuffle_plus".localized, isOn: $shufflePlusEnabled)
             }
 
             SpacerView()

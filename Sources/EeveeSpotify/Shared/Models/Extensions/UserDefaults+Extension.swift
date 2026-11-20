@@ -7,6 +7,7 @@ extension UserDefaults {
     private static let debugLoggingEnabledKey = "debugLoggingEnabled"
     private static let patchTypeKey = "patchType"
     private static let trueShuffleEnabledKey = "trueShuffleEnabled"
+    private static let shufflePlusEnabledKey = "shufflePlusEnabled"
     private static let overwriteConfigurationKey = "overwriteConfiguration"
     private static let lyricsColorsKey = "lyricsColors"
     private static let lyricsOptionsKey = "lyricsOptions"
@@ -61,6 +62,15 @@ extension UserDefaults {
         }
         set (isEnabled) {
             container.set(isEnabled, forKey: trueShuffleEnabledKey)
+        }
+    }
+
+    static var shufflePlusEnabled: Bool {
+        get {
+            container.object(forKey: shufflePlusEnabledKey) as? Bool ?? false
+        }
+        set (isEnabled) {
+            container.set(isEnabled, forKey: shufflePlusEnabledKey)
         }
     }
     

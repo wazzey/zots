@@ -381,6 +381,9 @@ struct EeveeSpotify: Tweak {
             }
             eeveeLog("[EeveeSpotify] Initialization complete for 9.1.x")
             TrueShuffleHook.install()
+            if UserDefaults.shufflePlusEnabled {
+                eeveeLog("[EeveeSpotify][ShufflePlus] %d hooks", EeveeInstallShufflePlus())
+            }
             activateEeveeProbes()
             activateSponsorBlock()
             activateKaraokeHooks()

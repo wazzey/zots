@@ -34,6 +34,8 @@ overwrite_configuration_description = "Replace remote configuration with the dum
 
 true_shuffle = "True Shuffle";
 true_shuffle_dec = "Blocks Spotify's free-tier Smart Shuffle from mixing recommended tracks into your queue. Shuffle stays inside the playlist. ";
+shuffle_plus = "Shuffle+";
+shuffle_plus_desc = "Reshuffles a playlist with a truly random order every time you start it on shuffle, so Spotify stops repeating the same order. Songs you queued yourself stay first. ";
 
 // Lyrics
 
