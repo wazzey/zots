@@ -1,0 +1,40 @@
+name: Create IPA Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      ipa_url:
+        description: 'Direct URL to the Decrypted Spotify IPA'
+        required: true
+        type: string
+      deb_url:
+        description: 'Direct URL to the EeveeSpotify .deb Tweak'
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Azule
+        run: |
+          git clone https://github.com ~/Azule
+          sudo ln -sf ~/Azule/azule /usr/local/bin/azule
+
+      - name: Download Files
+        run: |
+          curl -L "${{ github.event.inputs.ipa_url }}" -o input.ipa
+          curl -L "${{ github.event.inputs.deb_url }}" -o tweak.deb
+
+      - name: Inject Tweak and Build IPA
+        run: |
+          azule -i input.ipa -o output.ipa -f tweak.deb
+
+      - name: Upload Finished Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: EeveeSpotify-Patched-IPA
+          path: output.ipa
