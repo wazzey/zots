@@ -22,10 +22,10 @@ jobs:
           git clone https://github.com/mpelteshki/Azule ~/Azule
           sudo ln -sf ~/Azule/azule /usr/local/bin/azule
 
-      - name: Download Files
+            - name: Download Files
         run: |
-          curl -L "${{ github.event.inputs.ipa_url }}" -o input.ipa
-          curl -L "${{ github.event.inputs.deb_url }}" -o tweak.deb
+          wget --no-check-certificate --user-agent="Mozilla/5.0" "${{ github.event.inputs.ipa_url }}" -O input.ipa
+          wget --no-check-certificate --user-agent="Mozilla/5.0" "${{ github.event.inputs.deb_url }}" -O tweak.deb
 
       - name: Inject Tweak
         run: |
